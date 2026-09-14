@@ -1,5 +1,7 @@
+import { execFileSync } from "node:child_process";
 import { readFile, writeFile } from 'node:fs/promises';
-const commit = process.env.WORKERS_CI_COMMIT_SHA ?? 'local';
+const supplied = process.env.WORKERS_CI_COMMIT_SHA?.trim();
+const commit = supplied && /^[a-f0-9]{40}$/.test(supplied) ? supplied : process.env.WORKERS_CI ? execFileSync("git", ["rev-parse", "--verify", "HEAD"], { encoding: "utf8" }).trim() : "local";
 if (commit !== 'local' && !/^[a-f0-9]{40}$/.test(commit)) throw new Error('Invalid build commit');
 const path = new URL('./worker.js', import.meta.url);
 const source = await readFile(path, 'utf8');
